@@ -1,0 +1,26 @@
+{
+ "f4_gate": "reported only (user decision 09-28)",
+ "f4_would_pass": false,
+ "success/attempts": {
+  "train_control": "6/10",
+  "f3": "6/20",
+  "f4": "0/30",
+  "extrap": "1/10"
+ },
+ "f4_per_object": {
+  "rect16x22c1": "0/10",
+  "triangle24c2": "0/10",
+  "pentagon20c1": "0/10"
+ },
+ "f3_ablation": "0 (normal 6)",
+ "inference_swap_ratio": 101.8,
+ "f1_swap_direction_mm": 3.01,
+ "f2_zero_wrench_contact_mm": 0.902,
+ "contact_windows": 1255,
+ "config_hash": "61e89d6a0c8b9d6c",
+ "weights": {
+  "encoder.pt": "a7b50a80dc0dbf17",
+  "policy.pt": "a365945261a9df6d"
+ }
+}
+D1: PASS

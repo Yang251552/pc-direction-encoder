@@ -1,0 +1,17 @@
+.DS_Store
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.aac
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.zip
+*.dmg
+__pycache__/
+.venv/
+third_party/menagerie/franka_fr3/
+data/
+runs/

@@ -1,0 +1,122 @@
+{
+ "policy": "send_pc",
+ "visual": "pc",
+ "config_hash": "61e89d6a0c8b9d6c6b715e56ce16e058ef2c04c0e28136907d92286acf31e10c",
+ "weights_sha256": {
+  "encoder.pt": "a7b50a80dc0dbf17",
+  "policy.pt": "a365945261a9df6d"
+ },
+ "protocol_sha256": "42e10b08afac52d6",
+ "n_points": 512,
+ "ablate_pc": false,
+ "ablate_wrench": false,
+ "seconds": 111.2,
+ "summary": {
+  "train_control": {
+   "success": 6,
+   "attempts": 10
+  }
+ },
+ "attempts": [
+  {
+   "case_id": "train_control-000",
+   "group": "train_control",
+   "object_id": "hex16c1",
+   "tilt_deg": 20,
+   "success": false,
+   "depth_mm": -5.4,
+   "steps": 150,
+   "max_force_n": 0.73
+  },
+  {
+   "case_id": "train_control-001",
+   "group": "train_control",
+   "object_id": "octagon22c1",
+   "tilt_deg": 10,
+   "success": false,
+   "depth_mm": 0.91,
+   "steps": 150,
+   "max_force_n": 44.52
+  },
+  {
+   "case_id": "train_control-002",
+   "group": "train_control",
+   "object_id": "octagon22c1",
+   "tilt_deg": 0,
+   "success": true,
+   "depth_mm": 21.61,
+   "steps": 140,
+   "max_force_n": 27.83
+  },
+  {
+   "case_id": "train_control-003",
+   "group": "train_control",
+   "object_id": "round16c1",
+   "tilt_deg": 0,
+   "success": true,
+   "depth_mm": 20.81,
+   "steps": 42,
+   "max_force_n": 0.55
+  },
+  {
+   "case_id": "train_control-004",
+   "group": "train_control",
+   "object_id": "hex22c2",
+   "tilt_deg": 0,
+   "success": true,
+   "depth_mm": 21.33,
+   "steps": 53,
+   "max_force_n": 24.82
+  },
+  {
+   "case_id": "train_control-005",
+   "group": "train_control",
+   "object_id": "round22c2",
+   "tilt_deg": 0,
+   "success": true,
+   "depth_mm": 20.29,
+   "steps": 55,
+   "max_force_n": 7.04
+  },
+  {
+   "case_id": "train_control-006",
+   "group": "train_control",
+   "object_id": "round16c1",
+   "tilt_deg": 20,
+   "success": true,
+   "depth_mm": 20.53,
+   "steps": 57,
+   "max_force_n": 43.38
+  },
+  {
+   "case_id": "train_control-007",
+   "group": "train_control",
+   "object_id": "square22c1",
+   "tilt_deg": 20,
+   "success": false,
+   "depth_mm": -0.53,
+   "steps": 150,
+   "max_force_n": 79.39
+  },
+  {
+   "case_id": "train_control-008",
+   "group": "train_control",
+   "object_id": "octagon16c2",
+   "tilt_deg": 10,
+   "success": true,
+   "depth_mm": 21.0,
+   "steps": 64,
+   "max_force_n": 38.77
+  },
+  {
+   "case_id": "train_control-009",
+   "group": "train_control",
+   "object_id": "square16c2",
+   "tilt_deg": 20,
+   "success": false,
+   "depth_mm": 1.62,
+   "steps": 150,
+   "max_force_n": 48.57
+  }
+ ]
+}

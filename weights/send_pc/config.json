@@ -1,0 +1,94 @@
+{
+  "config": {
+    "name": "send_pc",
+    "data": "data/demos.npz",
+    "notes": "C3 repair r2 (orchestrator; user approved training on an AWS GPU, evaluation stays on the local CPU): train.steps 5000 -> 10000 for localisation accuracy (C2's 2500 steps / ~27 epochs left mm-level errors), and n_action_steps 4 -> 2 so the policy re-observes every 2 control steps, reducing open-loop drift near the hole mouth (predict() now returns (2, 9)). Point count follows the data (256 -> 512 points); the encoder takes any N. Run: python -m policy.train --config configs/send_pc.json --device cuda (env: policy/requirements-train-gpu.txt). C3 repair r1 (orchestrator, after the user moved the RGB-only baseline out of the send line): relative_pos = true (point cloud xyz, agent_pos positions and position actions relative to the last observed pin tip; rotations absolute; predict() still returns absolute poses) and train.steps 2500 -> 5000 (superseded by r2). The timing block below is the B5 measurement that set the earlier 2500. When the f5 RGB comparison is run (interview-evidence phase), configs/send_rgb.json must use the same train.steps and relative_pos as this file. f5 setup: the RGB branch uses Diffusion Policy's standard augmentation (random crop 96->88 per image in training, centre crop 88 at inference); the point cloud branch has no augmentation. Everything else (demos, diffusion head, pose + wrench conditioning, train section incl. steps) is identical in both configs. B5 timing was measured before the crop was added (96x96 input), so the RGB estimate is conservative.",
+    "model": {
+      "visual": "pc",
+      "channels": 14,
+      "horizon": 8,
+      "n_obs_steps": 2,
+      "n_action_steps": 2,
+      "action_dim": 9,
+      "agent_pos_dim": 9,
+      "wrench_dim": 6,
+      "enc_out_dim": 64,
+      "state_mlp": [
+        64,
+        64
+      ],
+      "wrench_mlp": [
+        64,
+        64
+      ],
+      "wrench_clip_pct": 99.0,
+      "rgb_crop": null,
+      "down_dims": [
+        64,
+        128,
+        256
+      ],
+      "kernel_size": 5,
+      "n_groups": 8,
+      "dsed": 128,
+      "num_train_timesteps": 100,
+      "num_inference_steps": 10,
+      "prediction_type": "sample",
+      "relative_pos": true
+    },
+    "train": {
+      "steps": 10000,
+      "batch_size": 64,
+      "lr": 0.0001,
+      "warmup": 500,
+      "seed": 0,
+      "threads": 2,
+      "log_every": 100
+    },
+    "timing": {
+      "measured": "2026-09-28 15:11",
+      "batch_size": 64,
+      "threads": 2,
+      "warm_steps": 3,
+      "timed_steps": 20,
+      "sec_per_step": {
+        "pc": 0.399,
+        "rgb": 2.4933
+      },
+      "budget_s": 7200,
+      "margin": 0.9,
+      "projected_hours": {
+        "pc": 0.277,
+        "rgb": 1.731
+      },
+      "protocol_windows": [
+        11640,
+        17640
+      ],
+      "epochs": [
+        9.1,
+        13.7
+      ],
+      "uptime_before": "15:10  up 7 days, 20:37, 1 user, load averages: 3.96 4.96 4.84",
+      "uptime_after": "15:11  up 7 days, 20:38, 1 user, load averages: 5.83 5.25 4.95",
+      "note": "measured while the simulator agent ran; re-measure when idle"
+    }
+  },
+  "config_hash": "61e89d6a0c8b9d6c6b715e56ce16e058ef2c04c0e28136907d92286acf31e10c",
+  "data_sha256": "81beea1c54078e5664d0427a7352ae373024758bc45cb640b7d52d2f5de11dcc",
+  "result": {
+    "steps": 10000,
+    "batch_size": 64,
+    "train_seconds": 434.7,
+    "sec_per_step": 0.0435,
+    "first_loss": 0.4499310553073883,
+    "final_loss_mean50": 0.0005124579899711535,
+    "n_windows": 22960,
+    "n_episodes": 480,
+    "n_frames": 25360,
+    "epochs": 27.9,
+    "warmup_steps": 500,
+    "threads": 2,
+    "device": "cuda"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "name": "send_rgb",
+  "data": "data/demos.npz",
+  "notes": "NOT in the send line (user decision). Before the f5 comparison (interview-evidence phase), set train.steps and model.relative_pos to the values in configs/send_pc.json (currently 10000 / true, and n_action_steps 2). f5 setup: the RGB branch uses Diffusion Policy's standard augmentation (random crop 96->88 per image in training, centre crop 88 at inference); the point cloud branch has no augmentation. Everything else (demos, diffusion head, pose + wrench conditioning, train section incl. steps) is identical in both configs. B5 timing was measured before the crop was added (96x96 input), so the RGB estimate is conservative.",
+  "model": {
+    "visual": "rgb",
+    "channels": 14,
+    "horizon": 8,
+    "n_obs_steps": 2,
+    "n_action_steps": 4,
+    "action_dim": 9,
+    "agent_pos_dim": 9,
+    "wrench_dim": 6,
+    "enc_out_dim": 64,
+    "state_mlp": [
+      64,
+      64
+    ],
+    "wrench_mlp": [
+      64,
+      64
+    ],
+    "wrench_clip_pct": 99.0,
+    "rgb_crop": 88,
+    "down_dims": [
+      64,
+      128,
+      256
+    ],
+    "kernel_size": 5,
+    "n_groups": 8,
+    "dsed": 128,
+    "num_train_timesteps": 100,
+    "num_inference_steps": 10,
+    "prediction_type": "sample"
+  },
+  "train": {
+    "steps": 2500,
+    "batch_size": 64,
+    "lr": 0.0001,
+    "warmup": 500,
+    "seed": 0,
+    "threads": 2,
+    "log_every": 100
+  },
+  "timing": {
+    "measured": "2026-09-28 15:11",
+    "batch_size": 64,
+    "threads": 2,
+    "warm_steps": 3,
+    "timed_steps": 20,
+    "sec_per_step": {
+      "pc": 0.399,
+      "rgb": 2.4933
+    },
+    "budget_s": 7200,
+    "margin": 0.9,
+    "projected_hours": {
+      "pc": 0.277,
+      "rgb": 1.731
+    },
+    "protocol_windows": [
+      11640,
+      17640
+    ],
+    "epochs": [
+      9.1,
+      13.7
+    ],
+    "uptime_before": "15:10  up 7 days, 20:37, 1 user, load averages: 3.96 4.96 4.84",
+    "uptime_after": "15:11  up 7 days, 20:38, 1 user, load averages: 5.83 5.25 4.95",
+    "note": "measured while the simulator agent ran; re-measure when idle"
+  }
+}

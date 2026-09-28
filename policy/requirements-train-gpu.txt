@@ -1,0 +1,16 @@
+# Training-only environment for a Linux CUDA GPU (python -m policy.train --device cuda).
+# No simulator: mujoco / open3d / opencv / imageio are NOT needed. Measured import closure of
+# `policy.train` (see EXPERIMENT_LOG / phase-B checkpoint): policy.{train,model,encoder},
+# third_party.dp3.{pointnet_extractor,conditional_unet1d,conv1d_components,positional_embedding},
+# torch, torchvision, diffusers, numpy (+ their own dependencies); sim/ and eval/ are never imported.
+# Python 3.12 (local .venv is 3.12.3).
+#
+# torch 2.2.2 CUDA 12.1 wheels:
+#   pip install -r policy/requirements-train-gpu.txt --extra-index-url https://download.pytorch.org/whl/cu121
+# (the default PyPI Linux x86_64 wheel of torch 2.2.2 is itself a cu121 build)
+torch==2.2.2
+torchvision==0.17.2      # imported by policy/encoder.py (RGB baseline encoder); no weights are downloaded
+diffusers==0.35.2        # >= 0.36 fails to import under torch 2.2
+numpy==1.26.4            # must stay < 2 (local version)
+huggingface-hub==1.23.0  # diffusers dependency, pinned to the locally tested version
+safetensors==0.8.0       # diffusers dependency, pinned to the locally tested version

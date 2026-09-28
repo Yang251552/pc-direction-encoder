@@ -1,0 +1,242 @@
+{
+ "policy": "send_pc",
+ "visual": "pc",
+ "config_hash": "61e89d6a0c8b9d6c6b715e56ce16e058ef2c04c0e28136907d92286acf31e10c",
+ "weights_sha256": {
+  "encoder.pt": "a7b50a80dc0dbf17",
+  "policy.pt": "a365945261a9df6d"
+ },
+ "protocol_sha256": "cbbea07ee748eb9b",
+ "n_points": 512,
+ "ablate_pc": false,
+ "ablate_wrench": true,
+ "seconds": 268.5,
+ "summary": {
+  "f3": {
+   "success": 4,
+   "attempts": 20
+  }
+ },
+ "attempts": [
+  {
+   "case_id": "f3-010",
+   "group": "f3",
+   "object_id": "hex22c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": 0.66,
+   "steps": 150,
+   "max_force_n": 74.93,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-011",
+   "group": "f3",
+   "object_id": "round16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.06,
+   "steps": 150,
+   "max_force_n": 49.41,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-012",
+   "group": "f3",
+   "object_id": "round16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.24,
+   "steps": 150,
+   "max_force_n": 13.7,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-013",
+   "group": "f3",
+   "object_id": "round22c2",
+   "tilt_deg": 15,
+   "success": true,
+   "depth_mm": 21.29,
+   "steps": 58,
+   "max_force_n": 5.3,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-014",
+   "group": "f3",
+   "object_id": "round22c2",
+   "tilt_deg": 15,
+   "success": true,
+   "depth_mm": 20.87,
+   "steps": 115,
+   "max_force_n": 13.37,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-015",
+   "group": "f3",
+   "object_id": "square22c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.24,
+   "steps": 150,
+   "max_force_n": 36.11,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-016",
+   "group": "f3",
+   "object_id": "hex16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": 0.83,
+   "steps": 150,
+   "max_force_n": 42.39,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-017",
+   "group": "f3",
+   "object_id": "round22c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": 0.68,
+   "steps": 150,
+   "max_force_n": 85.75,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-018",
+   "group": "f3",
+   "object_id": "hex16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.34,
+   "steps": 150,
+   "max_force_n": 63.48,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-019",
+   "group": "f3",
+   "object_id": "octagon16c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.22,
+   "steps": 150,
+   "max_force_n": 29.16,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-020",
+   "group": "f3",
+   "object_id": "octagon16c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.02,
+   "steps": 150,
+   "max_force_n": 15.34,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-021",
+   "group": "f3",
+   "object_id": "hex16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.1,
+   "steps": 150,
+   "max_force_n": 141.0,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-022",
+   "group": "f3",
+   "object_id": "round16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.13,
+   "steps": 150,
+   "max_force_n": 15.12,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-023",
+   "group": "f3",
+   "object_id": "hex22c2",
+   "tilt_deg": 15,
+   "success": true,
+   "depth_mm": 21.29,
+   "steps": 82,
+   "max_force_n": 117.1,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-024",
+   "group": "f3",
+   "object_id": "octagon22c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.41,
+   "steps": 150,
+   "max_force_n": 32.69,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-025",
+   "group": "f3",
+   "object_id": "octagon22c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.18,
+   "steps": 150,
+   "max_force_n": 187.1,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-026",
+   "group": "f3",
+   "object_id": "hex22c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.25,
+   "steps": 150,
+   "max_force_n": 52.43,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-027",
+   "group": "f3",
+   "object_id": "square16c2",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": 0.04,
+   "steps": 150,
+   "max_force_n": 20.55,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-028",
+   "group": "f3",
+   "object_id": "hex22c2",
+   "tilt_deg": 15,
+   "success": true,
+   "depth_mm": 20.01,
+   "steps": 107,
+   "max_force_n": 34.56,
+   "lost_view": false
+  },
+  {
+   "case_id": "f3-029",
+   "group": "f3",
+   "object_id": "hex16c1",
+   "tilt_deg": 15,
+   "success": false,
+   "depth_mm": -0.08,
+   "steps": 150,
+   "max_force_n": 70.35,
+   "lost_view": false
+  }
+ ]
+}

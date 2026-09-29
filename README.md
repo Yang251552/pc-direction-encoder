@@ -1,77 +1,100 @@
-# Direction-aware point cloud encoder for force-aware peg insertion (simulation prototype)
+# Direction-aware point cloud encoder for force-aware peg insertion (Franka FR3, simulation)
 
 I built a minimal direction-aware point cloud encoder: input a point cloud with per-point normals, principal curvatures (direction and magnitudes) and the nominal insertion axis (N×14) → output a trained encoder whose geometric embedding conditions a diffusion policy.
+The policy is also conditioned on the end-effector pose and the wrist wrench history. It is trained on 480 simulated peg-in-hole demonstrations and evaluated closed loop on cases fixed before training.
 
-![closed-loop insertion on a held-out hole pose](figures/demo_f3-010.gif)
+> **Application context.** Prepared as application material for the semester project *Development of a Point Cloud Encoder for Force-Aware Manipulation Policy Learning* (IfA / inspire AG, with Bota Systems). Nothing here claims that work on that project has started; scope boundaries are in [What this is not](#what-this-is-not) and [Limitations and next steps](#limitations-and-next-steps).
 
-*Case f3-010, closed loop with the expert disabled: a Franka FR3 inserts a hexagonal peg into a hole tilted 15°, a tilt never seen in training. Left: the scene. Middle: what the encoder sees (512 points, normals, insertion axis). Right: wrist force Fz and insertion depth (success = 20 mm within 15 s).*
+![closed-loop insertion on a hole tilt never seen in training](figures/demo_f3-010.gif)
 
-**Results** (frozen protocol, one config, every attempt in `results/results.json`): held-out hole pose f3 6/20 · training poses train_control 6/10 · novel cross-sections f4 0/30 (a limitation, see below) · 30° extrapolation extrap 1/10 (reported only).
+*Case `f3-010`, closed loop with the expert disabled: the FR3 inserts a hexagonal peg into a hole tilted 15°, a tilt that never appears in training. Left: the scene. Middle: what the encoder sees (512 points, normals, the insertion axis). Right: wrist force Fz and insertion depth.*
 
-What is hard-coded: simulation only (MuJoCo 3.10, Franka FR3 model), ground-truth camera extrinsics, one fixed workspace depth camera, a scripted expert that knows the hole pose up to a 0.5–1.8 mm aiming error and corrects it with wrist force, one parametric peg/hole family, and the nominal insertion axis given as a task input.
+**Results** (one config and one seed; every attempt is in `results/results.json`; peg shapes seen in training): hole tilt never seen in training f3 6/20 · training tilts train_control 6/10.
 
-## What is implemented
+What is hard-coded: simulation only (MuJoCo 3.10, Franka FR3 model), ground-truth camera extrinsics, one fixed depth camera, a scripted expert that knows the hole pose up to a 0.5–1.8 mm aiming error and corrects it with wrist force, and the nominal insertion axis given as a task input.
 
-The anchor chain, end to end:
+## Pipeline at a glance
 
-1. **Scene**: Franka FR3 (MuJoCo Menagerie), a peg fixed to the flange through a wrist force/torque sensor, and a tiltable part with a matching hole (1 mm clearance per side, 30 mm deep, chamfered).
-2. **Demonstrations**: 480 expert insertions over 8 training geometries (round, square, hexagon, octagon × 2 sizes), with DART noise and force-guided lateral correction.
-3. **Point cloud**: depth image → back-projection → crop around the pin tip (proprioception only, no ground-truth part pose) → farthest point sampling to 512 points.
-4. **Direction features** (14 channels per point): xyz, surface normal (Open3D, k = 20), principal-curvature direction and both curvature magnitudes, nominal insertion axis.
-5. **Encoder**: DP3-style PointNet encoder taking all 14 channels. This is the trained model the project delivers (`weights/send_pc/encoder.pt`, loadable on its own).
-6. **Policy**: encoder embedding + end-effector pose + wrist-wrench history → conditional 1-D U-Net diffusion head (DDPM training, 10-step DDIM sampling). Positions and point coordinates are expressed relative to the pin tip.
-7. **Closed-loop evaluation** on a protocol frozen before any training: 70 cases, each attempted once.
+```mermaid
+flowchart LR
+    S["MuJoCo scene<br/>Franka FR3 · wrist F/T sensor<br/>tilted part with a hole"] --> E["Scripted expert<br/>aiming error + force-guided correction"]
+    E --> D["480 demonstrations"]
+    S --> C["Depth → point cloud<br/>crop around the pin tip · 512 points"]
+    C --> F["14 channels per point<br/>xyz · normal · curvature · axis"]
+    F --> N["Encoder (DP3-style)<br/>weights/send_pc/encoder.pt"]
+    W["Pose · wrench history"] --> H
+    N --> H["Diffusion head<br/>actions relative to the pin tip"]
+    D --> T["Training<br/>one AWS T4 run, 7 min"]
+    T --> N
+    H --> R["Closed-loop evaluation<br/>results/*.json"]
+```
 
-## Results
+## Project fit at a glance
 
-| Group | What is held out | Successes / attempts |
+| Listing goal | What this repository does | Status |
 |---|---|---|
-| train_control | nothing (training geometries and tilts, new poses) | train_control 6/10 |
-| f3 | hole tilt 15° (never in training), training geometries | f3 6/20 |
-| f4 | cross-section shape (rectangle, triangle, pentagon; never in training) | f4 0/30 |
-| extrap | hole tilt 30° (outside the training range) | extrap 1/10 |
+| Depth / point cloud streams and camera calibration | One simulated depth camera turned into a point cloud, cropped using proprioception only; extrinsics are the simulator's ground truth | simulation stand-in |
+| **Point cloud encoder that processes directional vector inputs** | DP3-style encoder over 14 channels (xyz, normal, curvature direction and magnitudes, insertion axis), trained end to end and loadable on its own | done at prototype scale |
+| Fuse with force and proprioception to condition a diffusion policy | Encoder embedding + pose + wrench history condition a 1-D U-Net diffusion head | done |
+| Evaluate transfer against vision and baseline encoders | Hole tilt never seen in training, plus point-cloud and wrench ablations; the RGB-only baseline is configured, not yet run | partial |
 
-Checks that the trained encoder is actually used:
+## Evidence snapshot
 
-- Closed loop, f3 with a mismatched point cloud (another case's scene): f3 0/20, versus f3 6/20 with the real one.
-- Closed loop, f3 with the wrench input zeroed: f3 4/20. This is reported only, not claimed as a gain.
-- Training-window loss with another episode's point cloud: 101.8× the loss with its own.
-- Swapping only the direction channels (normals, curvatures) for another frame's moves the predicted positions by 3.0 mm on average; zeroing the wrench in contact moves them by 0.9 mm. The pass threshold is 0.5 mm (half the per-side clearance); it replaced an earlier threshold in normalised action units that was mis-scaled, and was set after that first measurement. The full check output is in `results/check_floor_d1.txt`.
+| finding | source |
+|---|---|
+| On a hole tilt never seen in training, f3 6/20 across six different cases | `results/pc.json` |
+| The encoder drives the result: with another case's point cloud, f3 0/20; on training windows, the loss is 101.8× higher | `results/send_pc_ablate_pc_f3.json`, `results/check_floor_d1.txt` |
+| Directions and force are read: swapping only the direction channels moves the predicted positions by 3.0 mm; zeroing the wrench in contact moves them by 0.9 mm, against a 0.5 mm threshold (half the per-side clearance) | `results/check_floor_d1.txt` |
+| The encoder is trained (10,000 steps) and loads on its own; a fresh clone runs inference from the committed weights | `policy/check_encoder.py`, `scripts/smoke_test.sh` |
 
-## How to reproduce
+## What this is not
 
-Tested on macOS x86_64 with Python 3.12.
+- Not a real-robot result: everything runs in MuJoCo, with no TACTO setup, no Bota sensor and no real camera.
+- Not a benchmark: one object family, one seed.
+- Not a claim that the force input improves success: the wrench is shown to be read, not to help.
+
+## Quick start
+
+Tested on macOS x86_64 with Python 3.12:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python third_party/fetch_menagerie.py                                  # Franka FR3 model, pinned commit
-bash scripts/smoke_test.sh                                                        # fresh clone -> load committed weights -> one inference
-.venv/bin/python -m policy.check_encoder weights/send_pc/encoder.pt              # the trained encoder on its own
-.venv/bin/python -m eval.run --policy weights/send_pc --all --out results/pc.json   # full closed-loop evaluation, about 20 min on CPU
+.venv/bin/python third_party/fetch_menagerie.py                                    # Franka FR3 model, pinned commit
+bash scripts/smoke_test.sh                                                          # fresh clone -> committed weights -> one inference
+.venv/bin/python -m eval.run --policy weights/send_pc --all --out results/pc.json  # closed-loop evaluation, about 20 min on CPU
 ```
 
-`eval.check_floor` also recomputes the sensitivity checks, so it needs the demonstrations (`data/demos.npz`, not in git): run `python -m sim.gen_demos` first (about 15 min with 3 processes), then `python -m eval.check_floor results/pc.json --ablation results/send_pc_ablate_pc_f3.json`.
+Training: `python -m sim.gen_demos` (about 15 min), then `python -m policy.train --config configs/send_pc.json --device cuda`.
 
-Training from scratch:
+## How it works
 
-- `python -m sim.gen_demos` generates the demonstrations, about 15 min with 3 processes.
-- `python -m policy.train --config configs/send_pc.json --device cuda` trains the policy. It took 7 min on one T4 GPU; `policy/requirements-train-gpu.txt` lists the GPU environment.
+- **Evaluation fixed first.** The cases, the success criterion (20 mm deep within 15 s) and every threshold were fixed in `eval/protocol.json` before training.
+- **No simulator truth in perception.** The point cloud is cropped around the pin tip using proprioception only; a self-check poisons the true part pose and requires an identical observation.
+- **Positions relative to the pin tip.** Point coordinates and position actions are relative to the pin tip, so every hole position becomes the same local problem (`policy/test_relative.py`).
+- **An expert that needs force.** The expert aims with a small error and corrects it from the wrist force, so the demonstrations depend on the wrench.
+- **Checks against a degenerate model** (table above) run on the committed weights, and every result records its config and weight hashes (`eval/check_floor.py`, `eval/audit_results.py`).
 
-## Limitations
+## Limitations and next steps
 
-- **Novel cross-sections do not work yet (f4 0/30).** The policy does not rotate the peg about the insertion axis to match an unseen polygon: the twist error reached 17–56° on the rectangle and triangle. The expert always knew the aligned twist, so the demonstrations never showed a twist search.
-- Tilts outside the training range mostly fail (extrap 1/10).
-- Everything is in simulation, with a privileged scripted expert, one camera with ground-truth extrinsics, one random seed, and a small U-Net sized for CPU.
+- Simulation only. Next: real depth streams on the TACTO setup, with automatic wrist and workspace camera calibration.
+- Transfer to cross-section shapes that are not in training does not work yet, and tilts beyond the training range mostly fail. Next: an expert that searches the twist using wrist torque.
+- RGB-only baseline: configured in `configs/send_rgb.json`, not yet run.
+- One seed, a small U-Net sized for a CPU, and approximate curvature channels.
 
-## Next steps
+## Repo layout
 
-- Real depth streams on the TACTO setup, with automatic extrinsic calibration of wrist and workspace cameras (hand-eye AX = XB).
-- Novel shapes: an expert that searches the twist from the wrist torque about the insertion axis, then retrain and rerun f4.
-- RGB-only baseline: configured in `configs/send_rgb.json`, not yet run, so no comparison is claimed.
-- Ablations of the encoder input (xyz only, xyz + axis, all 14 channels), and expressing the input in the insertion-axis frame.
-- A ROS2 interface to the Bota wrist sensor.
+```
+sim/          scene, control, wrist F/T, point cloud and features, expert, demonstrations, checks
+policy/       encoder, diffusion policy, training, checks
+eval/         frozen protocol, closed-loop runner, floor check, audits, GIF
+weights/      send_pc: the committed encoder and policy
+results/      result JSON and check output
+third_party/  dp3 (vendored, changes listed in SOURCE.md); FR3 model fetch script
+```
 
-## Provenance and licenses
+## References
 
-- `third_party/dp3/`: encoder and U-Net from 3D Diffusion Policy (MIT) at commit 47385d9. Every modification is listed in `third_party/dp3/SOURCE.md`.
-- Franka FR3 model: MuJoCo Menagerie (Apache-2.0) at commit c96a32d, fetched by `third_party/fetch_menagerie.py`.
+- Y. Ze et al., "3D Diffusion Policy", RSS 2024 (`YanjieZe/3D-Diffusion-Policy`, MIT; vendored at 47385d9).
+- C. Chi et al., "Diffusion Policy", RSS 2023.
+- M. Laskey et al., "DART: Noise Injection for Robust Imitation Learning", CoRL 2017.
+- Franka FR3: MuJoCo Menagerie (Apache-2.0) at c96a32d.

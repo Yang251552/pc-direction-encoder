@@ -3,32 +3,20 @@
 I built a minimal direction-aware point cloud encoder: input a point cloud with per-point normals, principal curvatures (direction and magnitudes) and the nominal insertion axis (N×14) → output a trained encoder whose geometric embedding conditions a diffusion policy.
 The policy is also conditioned on the end-effector pose and the wrist wrench history. It is trained on 480 simulated peg-in-hole demonstrations and evaluated closed loop on cases fixed before training.
 
-> **Application context.** Prepared as application material for the semester project *Development of a Point Cloud Encoder for Force-Aware Manipulation Policy Learning* (IfA / inspire AG, with Bota Systems). Nothing here claims that work on that project has started; scope boundaries are in [What this is not](#what-this-is-not) and [Limitations and next steps](#limitations-and-next-steps).
-> Frozen application snapshot, 2026-09-29 (tag `v0.1-application`).
+> Application material for the semester project *Development of a Point Cloud Encoder for Force-Aware Manipulation Policy Learning* (IfA / inspire AG, with Bota Systems). Frozen snapshot, 2026-09-29 (tag `v0.1.1-application`).
 
 ![closed-loop insertion on a hole tilt never seen in training](figures/demo_f3-010.gif)
 
 *Case `f3-010`, closed loop with the expert disabled: the FR3 inserts a hexagonal peg into a hole tilted 15°, a tilt that never appears in training. Left: the scene. Middle: what the encoder sees (512 points, normals, the insertion axis). Right: wrist force Fz and insertion depth.*
 
-**Results** (one config and one seed; every attempt is in `results/results.json`; peg shapes seen in training): hole tilt never seen in training f3 6/20 · training tilts train_control 6/10.
+**Results**: hole tilt never seen in training (`f3`) **6/20**; the same cases fed another case's first-frame point cloud, held fixed (`f3`, ablation) **0/20**; training tilts (`train_control`) **6/10**. One config, one seed, peg shapes seen in training; every attempt is in `results/results.json`.
 
 What is hard-coded: simulation only (MuJoCo 3.10, Franka FR3 model), ground-truth camera extrinsics, one fixed depth camera, a scripted expert that knows the hole pose up to a 0.5–1.8 mm aiming error and corrects it with wrist force, and the nominal insertion axis given as a task input.
 
-## Pipeline at a glance
-
-```mermaid
-flowchart LR
-    S["MuJoCo scene<br/>Franka FR3 · wrist F/T sensor<br/>tilted part with a hole"] --> E["Scripted expert<br/>aiming error + force-guided correction"]
-    E --> D["480 demonstrations"]
-    S --> C["Depth → point cloud<br/>crop around the pin tip · 512 points"]
-    C --> F["14 channels per point<br/>xyz · normal · curvature · axis"]
-    F --> N["Encoder (DP3-style)<br/>weights/send_pc/encoder.pt"]
-    W["Pose · wrench history"] --> H
-    N --> H["Diffusion head<br/>actions relative to the pin tip"]
-    D --> T["Training<br/>one AWS T4 run, 7 min"]
-    T --> N
-    H --> R["Closed-loop evaluation<br/>results/*.json"]
-```
+**Stack**
+- **Robotics:** MuJoCo 3.10 · Franka FR3 · simulated wrist F/T sensor · Jacobian IK with null-space posture control
+- **3D vision:** depth → point cloud · Open3D normals · principal-curvature fit · tip-centred crop
+- **Learning:** PyTorch · DP3-style PointNet encoder · diffusion policy (1-D U-Net, DDPM/DDIM via `diffusers`) · imitation learning with DART noise · AWS T4 training
 
 ## Project fit at a glance
 
@@ -38,6 +26,18 @@ flowchart LR
 | **Point cloud encoder that processes directional vector inputs** | DP3-style encoder over 14 channels (xyz, normal, curvature direction and magnitudes, insertion axis), trained end to end and loadable on its own | done at prototype scale |
 | Fuse with force and proprioception to condition a diffusion policy | Encoder embedding + pose + wrench history condition a 1-D U-Net diffusion head | done |
 | Evaluate transfer against vision and baseline encoders | Hole tilt never seen in training, plus point-cloud and wrench ablations; the RGB-only baseline is configured, not run in this prototype | partial |
+
+## Pipeline at a glance
+
+```mermaid
+flowchart LR
+    P["Depth → point cloud<br/>512 points × 14 channels"] --> E["Direction-aware encoder<br/>DP3-style PointNet"]
+    E --> H["Diffusion policy<br/>1-D U-Net"]
+    W["Wrist wrench history<br/>+ end-effector pose"] --> H
+    H --> A["Peg-tip pose actions<br/>FR3 in MuJoCo, 10 Hz"]
+```
+
+Training data: 480 demonstrations from a force-reactive scripted expert with DART noise; one AWS T4 run (10,000 steps, 7 min).
 
 ## Evidence snapshot
 
@@ -70,8 +70,8 @@ Training: `python -m sim.gen_demos` (about 15 min), then `python -m policy.train
 ## How it works
 
 - **Evaluation fixed first.** The cases, the success criterion (20 mm deep within 15 s) and every threshold were fixed in `eval/protocol.json` before training.
-- **No simulator truth in perception.** The point cloud is cropped around the pin tip using proprioception only; a self-check poisons the true part pose and requires an identical observation.
-- **Positions relative to the pin tip.** Point coordinates and position actions are relative to the pin tip, so every hole position becomes the same local problem (`policy/test_relative.py`).
+- **No simulator truth in perception.** The point cloud is cropped around the peg tip using proprioception only; a self-check poisons the true part pose and requires an identical observation.
+- **Positions relative to the peg tip.** Point coordinates and position actions are relative to the peg tip, so every hole position becomes the same local problem (`policy/test_relative.py`).
 - **An expert that needs force.** The expert aims with a small error and corrects it from the wrist force, so the demonstrations depend on the wrench.
 - **Checks against a degenerate model** (table above) run on the committed weights, and every result records its config and weight hashes (`eval/check_floor.py`, `eval/audit_results.py`).
 

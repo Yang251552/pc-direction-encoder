@@ -4,6 +4,7 @@ I built a minimal direction-aware point cloud encoder: input a point cloud with 
 The policy is also conditioned on the end-effector pose and the wrist wrench history. It is trained on 480 simulated peg-in-hole demonstrations and evaluated closed loop on cases fixed before training.
 
 > **Application context.** Prepared as application material for the semester project *Development of a Point Cloud Encoder for Force-Aware Manipulation Policy Learning* (IfA / inspire AG, with Bota Systems). Nothing here claims that work on that project has started; scope boundaries are in [What this is not](#what-this-is-not) and [Limitations and next steps](#limitations-and-next-steps).
+> Frozen application snapshot, 2026-09-29 (tag `v0.1-application`).
 
 ![closed-loop insertion on a hole tilt never seen in training](figures/demo_f3-010.gif)
 
@@ -36,7 +37,7 @@ flowchart LR
 | Depth / point cloud streams and camera calibration | One simulated depth camera turned into a point cloud, cropped using proprioception only; extrinsics are the simulator's ground truth | simulation stand-in |
 | **Point cloud encoder that processes directional vector inputs** | DP3-style encoder over 14 channels (xyz, normal, curvature direction and magnitudes, insertion axis), trained end to end and loadable on its own | done at prototype scale |
 | Fuse with force and proprioception to condition a diffusion policy | Encoder embedding + pose + wrench history condition a 1-D U-Net diffusion head | done |
-| Evaluate transfer against vision and baseline encoders | Hole tilt never seen in training, plus point-cloud and wrench ablations; the RGB-only baseline is configured, not yet run | partial |
+| Evaluate transfer against vision and baseline encoders | Hole tilt never seen in training, plus point-cloud and wrench ablations; the RGB-only baseline is configured, not run in this prototype | partial |
 
 ## Evidence snapshot
 
@@ -76,9 +77,9 @@ Training: `python -m sim.gen_demos` (about 15 min), then `python -m policy.train
 
 ## Limitations and next steps
 
-- Simulation only. Next: real depth streams on the TACTO setup, with automatic wrist and workspace camera calibration.
-- Transfer to cross-section shapes that are not in training does not work yet, and tilts beyond the training range mostly fail. Next: an expert that searches the twist using wrist torque.
-- RGB-only baseline: configured in `configs/send_rgb.json`, not yet run.
+- Simulation only. In the project: real depth streams on the TACTO setup, with automatic wrist and workspace camera calibration.
+- Transfer to cross-section shapes that are not in training does not work yet, and tilts beyond the training range mostly fail. In the project: an expert that searches the twist using wrist torque.
+- RGB-only baseline: configured in `configs/send_rgb.json`, not run in this prototype.
 - One seed, a small U-Net sized for a CPU, and approximate curvature channels.
 
 ## Repo layout
